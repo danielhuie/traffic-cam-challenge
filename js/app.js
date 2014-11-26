@@ -8,8 +8,6 @@
 
 
 $(document).ready(function() {
-
-    // OBJECT CONTAINING LATITUDE AND LONGITUDE PROPERTIES
     var mapOptions = {
         center: {
             lat: 47.6,
@@ -18,14 +16,12 @@ $(document).ready(function() {
         zoom: 12
     };
 
-
     var mapElem = document.getElementById('map');
     var map = new google.maps.Map(mapElem, mapOptions);
 
     var infoWindow = new google.maps.InfoWindow();
 
-
-
+    var arr = [];
 
     $.getJSON('http://data.seattle.gov/resource/65fc-btcc.json')
         .done(function(data) {
@@ -35,7 +31,13 @@ $(document).ready(function() {
                         lat: Number(camera.location.latitude),
                         lng: Number(camera.location.longitude)
                     },
-                    map: map
+                    map: map,
+                    animation: google.maps.Animation.DROP
+                });
+
+                arr.push({
+                    camera: camera,
+                    marker: marker
                 });
 
                 google.maps.event.addListener(marker, 'click', function() {
@@ -43,20 +45,32 @@ $(document).ready(function() {
                     var content = '<img src=\"' + imgURL + "\">";
                     infoWindow.setContent(content);
                     infoWindow.open(map, this);
+                    map.panTo(marker.getPosition());
                 });
-            })
+
+            });
+
         })
         .fail(function(error) {
             console.log(error);
         })
         .always(function() {
         });
+
+    var search;
+    var label;
+
+    $("#search").bind('search keyup', function() {
+        search = document.getElementById('search').value.toLowerCase();
+        for (var i = 0; i < arr.length; i++) {
+            var location = arr[i].camera;
+            var marker = arr[i].marker;
+            label = location.cameralabel.toLowerCase();
+            if (label.indexOf(search) == -1) {
+                marker.setMap(null);
+            } else {
+                marker.setMap(map);
+            }
+        }
+    });
 });
-
-
-//when a user clicks on a marker, you should pan the map so that the marker
-//is at the center, and open an InfoWindow that displays the latest camera
-//image
-//you should also write the code to filter the set of markers when the user
-//types a search phrase into the search box
-
