@@ -5,6 +5,55 @@
 
 //put your code here to create the map, fetch the list of traffic cameras
 //and add them as markers on the map
+
+
+$(document).ready(function() {
+
+    // OBJECT CONTAINING LATITUDE AND LONGITUDE PROPERTIES
+    var mapOptions = {
+        center: {
+            lat: 47.6,
+            lng: -122.3
+        },
+        zoom: 12
+    };
+
+
+    var mapElem = document.getElementById('map');
+    var map = new google.maps.Map(mapElem, mapOptions);
+
+    var infoWindow = new google.maps.InfoWindow();
+
+
+
+
+    $.getJSON('http://data.seattle.gov/resource/65fc-btcc.json')
+        .done(function(data) {
+            data.forEach(function(camera) {
+                var marker = new google.maps.Marker({
+                    position: {
+                        lat: Number(camera.location.latitude),
+                        lng: Number(camera.location.longitude)
+                    },
+                    map: map
+                });
+
+                google.maps.event.addListener(marker, 'click', function() {
+                    var imgURL = camera.imageurl.url;
+                    var content = '<img src=\"' + imgURL + "\">";
+                    infoWindow.setContent(content);
+                    infoWindow.open(map, this);
+                });
+            })
+        })
+        .fail(function(error) {
+            console.log(error);
+        })
+        .always(function() {
+        });
+});
+
+
 //when a user clicks on a marker, you should pan the map so that the marker
 //is at the center, and open an InfoWindow that displays the latest camera
 //image
